@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Detector inteligente de maíz
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                #eef4ef;
+
+            margin: 0;
+
+            color:
+                #263238;
+        }
+
+
+        .contenedor {
+
+            width: 92%;
+
+            max-width: 1150px;
+
+            margin:
+                35px auto;
+
+            background:
+                white;
+
+            padding:
+                35px;
+
+            border-radius:
+                18px;
+
+            box-shadow:
+                0 4px 20px
+                rgba(0,0,0,0.10);
+        }
+
+
+        h1 {
+
+            text-align:
+                center;
+
+            color:
+                #245c31;
+
+            margin-bottom:
+                5px;
+        }
+
+
+        .descripcion {
+
+            text-align:
+                center;
+
+            color:
+                #607d66;
+
+            margin-bottom:
+                30px;
+        }
+
+
+        .subir {
+
+            text-align:
+                center;
+
+            background:
+                #f4f8f4;
+
+            border:
+                2px dashed #96b99d;
+
+            padding:
+                30px;
+
+            border-radius:
+                14px;
+        }
+
+
+        .boton {
+
+            border:
+                none;
+
+            border-radius:
+                9px;
+
+            padding:
+                12px 22px;
+
+            cursor:
+                pointer;
+
+            font-size:
+                15px;
+
+            transition:
+                0.2s;
+        }
+
+
+        .boton:hover {
+
+            opacity:
+                0.88;
+        }
+
+
+        .analizar {
+
+            color:
+                white;
+
+            background:
+                #2e7d32;
+
+            margin-left:
+                10px;
+        }
+
+
+        .imagen {
+
+            display:
+                block;
+
+            width:
+                100%;
+
+            max-width:
+                520px;
+
+            margin:
+                30px auto;
+
+            border-radius:
+                14px;
+
+            box-shadow:
+                0 3px 12px
+                rgba(0,0,0,0.15);
+        }
+
+
+        .titulo-resultados {
+
+            margin-top:
+                35px;
+
+            color:
+                #245c31;
+        }
+
+
+        .resultados {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(
+                        280px,
+                        1fr
+                    )
+                );
+
+            gap:
+                22px;
+
+            margin-top:
+                20px;
+        }
+
+
+        .tarjeta {
+
+            background:
+                #f8faf8;
+
+            border:
+                1px solid #dde7df;
+
+            border-radius:
+                14px;
+
+            padding:
+                22px;
+
+            line-height:
+                1.55;
+        }
+
+
+        .tarjeta h3 {
+
+            margin-top:
+                0;
+
+            color:
+                #245c31;
+        }
+
+
+        .tarjeta h2 {
+
+            font-size:
+                20px;
+
+            color:
+                #263238;
+        }
+
+
+        .probabilidad {
+
+            font-size:
+                22px;
+
+            font-weight:
+                bold;
+
+            color:
+                #2e7d32;
+        }
+
+
+        .nivel {
+
+            display:
+                inline-block;
+
+            background:
+                #e5f1e7;
+
+            color:
+                #245c31;
+
+            padding:
+                5px 10px;
+
+            border-radius:
+                20px;
+
+            font-weight:
+                bold;
+        }
+
+
+        .seccion-info {
+
+            margin-top:
+                18px;
+
+            padding-top:
+                12px;
+
+            border-top:
+                1px solid #ddd;
+        }
+
+
+        .advertencia {
+
+            background:
+                #fff8e1;
+
+            border-left:
+                4px solid #ffb300;
+
+            padding:
+                12px;
+
+            border-radius:
+                6px;
+
+            font-size:
+                14px;
+
+            color:
+                #665200;
+        }
+
+
+        .ranking {
+
+            margin-top:
+                15px;
+        }
+
+
+        .ranking-item {
+
+            display:
+                flex;
+
+            justify-content:
+                space-between;
+
+            padding:
+                6px 0;
+
+            border-bottom:
+                1px solid #eee;
+        }
+
+
+        .feedback {
+
+            margin-top:
+                35px;
+
+            padding:
+                25px;
+
+            text-align:
+                center;
+
+            background:
+                #f4f8f4;
+
+            border-radius:
+                14px;
+        }
+
+
+        .correcto {
+
+            background:
+                #2e7d32;
+
+            color:
+                white;
+
+            margin:
+                5px;
+        }
+
+
+        .incorrecto {
+
+            background:
+                #c62828;
+
+            color:
+                white;
+
+            margin:
+                5px;
+        }
+
+
+        .mensaje {
+
+            background:
+                #dff2e1;
+
+            color:
+                #245c31;
+
+            padding:
+                15px;
+
+            border-radius:
+                10px;
+
+            text-align:
+                center;
+
+            margin-bottom:
+                20px;
+        }
+
+
+        .aviso-final {
+
+            margin-top:
+                30px;
+
+            background:
+                #eceff1;
+
+            padding:
+                15px;
+
+            border-radius:
+                10px;
+
+            color:
+                #455a64;
+
+            font-size:
+                14px;
+        }
+
+
+        @media (
+            max-width: 600px
+        ) {
+
+            .contenedor {
+
+                width:
+                    96%;
+
+                padding:
+                    20px;
+            }
+
+
+            .analizar {
+
+                display:
+                    block;
+
+                margin:
+                    15px auto 0;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="contenedor">
+
+
+    <h1>
+        🌽 Detector inteligente de maíz
+    </h1>
+
+
+    <p class="descripcion">
+
+        Analizá una fotografía de una hoja de maíz
+        utilizando tres modelos de inteligencia artificial.
+
+    </p>
+
+
+    {% if mensaje %}
+
+        <div class="mensaje">
+
+            {{ mensaje }}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ================================================== -->
+    <!-- SUBIR IMAGEN                                      -->
+    <!-- ================================================== -->
+
+
+    <form
+
+        method="POST"
+
+        enctype="multipart/form-data"
+
+        class="subir"
+
+    >
+
+        <input
+
+            type="file"
+
+            name="imagen"
+
+            accept="image/*"
+
+            required
+
+        >
+
+
+        <button
+
+            type="submit"
+
+            class="boton analizar"
+
+        >
+
+            🔬 Analizar fotografía
+
+        </button>
+
+    </form>
+
+
+
+    {% if imagen_url %}
+
+
+        <img
+
+            src="{{ imagen_url }}"
+
+            class="imagen"
+
+            alt="Hoja analizada"
+
+        >
+
+
+    {% endif %}
+
+
+
+    {% if resultado %}
+
+
+        <h2 class="titulo-resultados">
+
+            📊 Resultado del análisis
+
+        </h2>
+
+
+        <div class="resultados">
+
+
+            <!-- ================================================= -->
+            <!-- ENFERMEDAD                                       -->
+            <!-- ================================================= -->
+
+
+            <div class="tarjeta">
+
+
+                <h3>
+                    🌿 Enfermedad
+                </h3>
+
+
+                <h2>
+
+                    {{ resultado.nombre_enfermedad }}
+
+                </h2>
+
+
+                <p>
+                    Probabilidad del modelo:
+                </p>
+
+
+                <p class="probabilidad">
+
+                    {{
+                        "%.2f"|format(
+                            resultado.prob_enfermedad
+                            * 100
+                        )
+                    }} %
+
+                </p>
+
+
+                <p>
+
+                    Nivel orientativo:
+
+                    <span class="nivel">
+
+                        {{
+                            resultado.confianza_enfermedad
+                        }}
+
+                    </span>
+
+                </p>
+
+
+                <div class="seccion-info">
+
+                    <strong>
+                        ¿Qué significa?
+                    </strong>
+
+                    <p>
+
+                        {{
+                            resultado.descripcion_enfermedad
+                        }}
+
+                    </p>
+
+                </div>
+
+
+                <div class="seccion-info">
+
+                    <strong>
+                        🔎 Características habituales
+                    </strong>
+
+                    <p>
+
+                        {{
+                            resultado.sintomas_enfermedad
+                        }}
+
+                    </p>
+
+                </div>
+
+
+                <div class="seccion-info">
+
+                    <strong>
+                        💡 Recomendación
+                    </strong>
+
+                    <p>
+
+                        {{
+                            resultado.recomendacion_enfermedad
+                        }}
+
+                    </p>
+
+                </div>
+
+
+                <div class="seccion-info">
+
+                    <strong>
+                        Otras probabilidades del modelo
+                    </strong>
+
+
+                    <div class="ranking">
+
+                        {%
+                            for item
+                            in resultado.ranking_enfermedades
+                        %}
+
+                            <div class="ranking-item">
+
+                                <span>
+
+                                    {{ item.nombre }}
+
+                                </span>
+
+                                <span>
+
+                                    {{
+                                        "%.2f"|format(
+                                            item.probabilidad
+                                            * 100
+                                        )
+                                    }} %
+
+                                </span>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- ================================================= -->
+            <!-- AGUA                                             -->
+            <!-- ================================================= -->
+
+
+            <div class="tarjeta">
+
+
+                <h3>
+                    💧 Estrés hídrico
+                </h3>
+
+
+                <h2>
+
+                    {{ resultado.agua }}
+
+                </h2>
+
+
+                <p>
+                    Probabilidad del modelo:
+                </p>
+
+
+                <p class="probabilidad">
+
+                    {{
+                        "%.2f"|format(
+                            resultado.prob_agua
+                            * 100
+                        )
+                    }} %
+
+                </p>
+
+
+                <p>
+
+                    Nivel orientativo:
+
+                    <span class="nivel">
+
+                        {{
+                            resultado.confianza_agua
+                        }}
+
+                    </span>
+
+                </p>
+
+
+                <div class="seccion-info">
+
+                    <strong>
+                        ¿Qué analiza este modelo?
+                    </strong>
+
+
+                    <p>
+
+                        Analiza patrones visuales de hojas
+                        de maíz pertenecientes a diferentes
+                        tratamientos hídricos.
+
+                    </p>
+
+                </div>
+
+
+                <div class="seccion-info">
+
+                    <strong>
+                        ⚠️ Estado experimental
+                    </strong>
+
+
+                    <p>
+
+                        Todavía no se confirmó de forma
+                        verificable qué tratamiento hídrico
+                        corresponde exactamente a
+                        Clase 0, Clase 1 y Clase 2.
+
+                    </p>
+
+                </div>
+
+
+                <div class="advertencia">
+
+                    {{ resultado.advertencia_agua }}
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- ================================================= -->
+            <!-- PLAGA                                            -->
+            <!-- ================================================= -->
+
+
+            <div class="tarjeta">
+
+
+                <h3>
+                    🐛 Gusano cogollero
+                </h3>
+
+
+                <h2>
+
+                    {{ resultado.titulo_plaga }}
+
+                </h2>
+
+
+                <p>
+                    Probabilidad de Fall Armyworm:
+                </p>
+
+
+                <p class="probabilidad">
+
+                    {{
+                        "%.2f"|format(
+                            resultado.prob_plaga
+                            * 100
+                        )
+                    }} %
+
+                </p>
+
+
+                <p>
+
+                    Nivel orientativo:
+
+                    <span class="nivel">
+
+                        {{
+                            resultado.confianza_plaga
+                        }}
+
+                    </span>
+
+                </p>
+
+
+                <div class="seccion-info">
+
+                    <strong>
+                        ¿Qué significa?
+                    </strong>
+
+
+                    <p>
+
+                        {{
+                            resultado.descripcion_plaga
+                        }}
+
+                    </p>
+
+                </div>
+
+
+                <div class="seccion-info">
+
+                    <strong>
+                        🔎 Qué revisar
+                    </strong>
+
+
+                    <p>
+
+                        {{
+                            resultado.sintomas_plaga
+                        }}
+
+                    </p>
+
+                </div>
+
+
+                <div class="seccion-info">
+
+                    <strong>
+                        💡 Recomendación
+                    </strong>
+
+
+                    <p>
+
+                        {{
+                            resultado.recomendacion_plaga
+                        }}
+
+                    </p>
+
+                </div>
+
+
+                <div class="advertencia">
+
+                    Umbral utilizado para detectar
+                    Fall Armyworm:
+
+                    <strong>34 %</strong>.
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- ================================================== -->
+        <!-- AVISO GENERAL                                      -->
+        <!-- ================================================== -->
+
+
+        <div class="aviso-final">
+
+            ⚠️ <strong>Importante:</strong>
+
+            los resultados son predicciones de modelos
+            de inteligencia artificial y deben utilizarse
+            como información orientativa.
+
+            Una probabilidad alta no representa una
+            certeza diagnóstica y no reemplaza una
+            evaluación agronómica profesional.
+
+        </div>
+
+
+
+        <!-- ================================================== -->
+        <!-- FEEDBACK                                           -->
+        <!-- ================================================== -->
+
+
+        <div class="feedback">
+
+
+            <h2>
+
+                ¿El análisis fue correcto?
+
+            </h2>
+
+
+            <p>
+
+                Tu valoración puede utilizarse para
+                construir datos destinados a futuros
+                reentrenamientos.
+
+            </p>
+
+
+            <form
+
+                action="/feedback"
+
+                method="POST"
+
+            >
+
+
+                <input
+
+                    type="hidden"
+
+                    name="analisis_id"
+
+                    value="{{ analisis_id }}"
+
+                >
+
+
+                <button
+
+                    type="submit"
+
+                    name="valor"
+
+                    value="correcto"
+
+                    class="boton correcto"
+
+                >
+
+                    👍 Correcto
+
+                </button>
+
+
+                <button
+
+                    type="submit"
+
+                    name="valor"
+
+                    value="incorrecto"
+
+                    class="boton incorrecto"
+
+                >
+
+                    👎 Incorrecto
+
+                </button>
+
+
+            </form>
+
+
+        </div>
+
+
+    {% endif %}
+
+
+</div>
+
+
+</body>
+
+</html>

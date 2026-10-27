@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Corregir análisis
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                #eef4ef;
+
+            margin: 0;
+
+            color:
+                #263238;
+        }
+
+
+        .contenedor {
+
+            width: 92%;
+
+            max-width: 850px;
+
+            margin: 35px auto;
+
+            background: white;
+
+            padding: 35px;
+
+            border-radius: 18px;
+
+            box-shadow:
+                0 4px 20px
+                rgba(0,0,0,0.10);
+        }
+
+
+        h1 {
+
+            color:
+                #245c31;
+        }
+
+
+        .imagen {
+
+            width:
+                100%;
+
+            max-width:
+                450px;
+
+            display:
+                block;
+
+            margin:
+                25px auto;
+
+            border-radius:
+                12px;
+        }
+
+
+        .resultado {
+
+            background:
+                #f6f8f6;
+
+            border-radius:
+                10px;
+
+            padding:
+                14px;
+
+            margin-bottom:
+                10px;
+        }
+
+
+        .correccion {
+
+            border:
+                1px solid #dce5dd;
+
+            background:
+                #fafcfa;
+
+            padding:
+                18px;
+
+            border-radius:
+                12px;
+
+            margin-bottom:
+                18px;
+        }
+
+
+        .correccion label {
+
+            font-weight:
+                bold;
+        }
+
+
+        select {
+
+            width:
+                100%;
+
+            padding:
+                10px;
+
+            margin-top:
+                12px;
+
+            border-radius:
+                7px;
+
+            border:
+                1px solid #bbb;
+        }
+
+
+        .boton {
+
+            border:
+                none;
+
+            padding:
+                13px 22px;
+
+            border-radius:
+                8px;
+
+            cursor:
+                pointer;
+
+            font-size:
+                15px;
+        }
+
+
+        .guardar {
+
+            background:
+                #2e7d32;
+
+            color:
+                white;
+        }
+
+
+        .volver {
+
+            display:
+                inline-block;
+
+            margin-top:
+                20px;
+
+            color:
+                #455a64;
+        }
+
+
+        .error {
+
+            background:
+                #ffdddd;
+
+            border-left:
+                4px solid #c62828;
+
+            padding:
+                12px;
+
+            margin-bottom:
+                15px;
+
+            border-radius:
+                6px;
+        }
+
+
+        .explicacion {
+
+            background:
+                #fff8e1;
+
+            padding:
+                12px;
+
+            border-radius:
+                8px;
+
+            margin-bottom:
+                20px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="contenedor">
+
+
+    <h1>
+        👎 Corregir análisis
+    </h1>
+
+
+    <p>
+
+        Indicá cuál de los resultados considerás
+        incorrecto y seleccioná la respuesta correcta.
+
+    </p>
+
+
+    <div class="explicacion">
+
+        Estas correcciones se guardan para crear
+        ejemplos revisados que posteriormente podrán
+        utilizarse en un nuevo entrenamiento de los modelos.
+
+    </div>
+
+
+    {% if error %}
+
+        <div class="error">
+
+            {{ error }}
+
+        </div>
+
+    {% endif %}
+
+
+    <img
+
+        src="{{ imagen_url }}"
+
+        class="imagen"
+
+        alt="Imagen analizada"
+
+    >
+
+
+    <!-- ================================================== -->
+    <!-- RESULTADOS ORIGINALES                              -->
+    <!-- ================================================== -->
+
+
+    <h2>
+        Resultado original de la IA
+    </h2>
+
+
+    <div class="resultado">
+
+        <strong>
+            🌿 Enfermedad:
+        </strong>
+
+        {{ analisis["enfermedad"] }}
+
+    </div>
+
+
+    <div class="resultado">
+
+        <strong>
+            💧 Estrés hídrico:
+        </strong>
+
+        {{ analisis["agua"] }}
+
+    </div>
+
+
+    <div class="resultado">
+
+        <strong>
+            🐛 Gusano cogollero:
+        </strong>
+
+        {{ analisis["plaga"] }}
+
+    </div>
+
+
+
+    <!-- ================================================== -->
+    <!-- FORMULARIO                                         -->
+    <!-- ================================================== -->
+
+
+    <form method="POST">
+
+
+        <!-- ENFERMEDAD -->
+
+
+        <div class="correccion">
+
+
+            <label>
+
+                <input
+
+                    type="checkbox"
+
+                    name="error_enfermedad"
+
+                >
+
+                🌿 La enfermedad detectada es incorrecta
+
+            </label>
+
+
+            <p>
+
+                Seleccioná cuál considerás que
+                debería ser la respuesta correcta:
+
+            </p>
+
+
+            <select
+                name="enfermedad_correcta"
+            >
+
+                <option
+                    value="Blight (Tizón)"
+                >
+                    Blight (Tizón)
+                </option>
+
+                <option
+                    value="Common Rust (Roya común)"
+                >
+                    Common Rust (Roya común)
+                </option>
+
+                <option
+                    value="Gray Leaf Spot (Mancha gris)"
+                >
+                    Gray Leaf Spot (Mancha gris)
+                </option>
+
+                <option
+                    value="Healthy (Sana)"
+                >
+                    Healthy (Sana)
+                </option>
+
+            </select>
+
+
+        </div>
+
+
+
+        <!-- AGUA -->
+
+
+        <div class="correccion">
+
+
+            <label>
+
+                <input
+
+                    type="checkbox"
+
+                    name="error_agua"
+
+                >
+
+                💧 El resultado hídrico es incorrecto
+
+            </label>
+
+
+            <p>
+
+                Seleccioná la clase que considerás correcta:
+
+            </p>
+
+
+            <select
+                name="agua_correcta"
+            >
+
+                <option value="Clase 0">
+                    Clase 0
+                </option>
+
+                <option value="Clase 1">
+                    Clase 1
+                </option>
+
+                <option value="Clase 2">
+                    Clase 2
+                </option>
+
+            </select>
+
+
+            <p>
+
+                <small>
+
+                    Este módulo continúa en etapa
+                    experimental.
+
+                </small>
+
+            </p>
+
+
+        </div>
+
+
+
+        <!-- PLAGA -->
+
+
+        <div class="correccion">
+
+
+            <label>
+
+                <input
+
+                    type="checkbox"
+
+                    name="error_plaga"
+
+                >
+
+                🐛 El resultado de gusano
+                cogollero es incorrecto
+
+            </label>
+
+
+            <p>
+
+                Seleccioná la respuesta correcta:
+
+            </p>
+
+
+            <select
+                name="plaga_correcta"
+            >
+
+                <option
+                    value="Sin Fall Armyworm"
+                >
+                    Sin Fall Armyworm
+                </option>
+
+                <option
+                    value="Fall Armyworm"
+                >
+                    Fall Armyworm
+                    (Gusano cogollero)
+                </option>
+
+            </select>
+
+
+        </div>
+
+
+
+        <button
+
+            type="submit"
+
+            class="boton guardar"
+
+        >
+
+            💾 Guardar corrección
+
+        </button>
+
+
+    </form>
+
+
+    <a
+
+        href="/"
+
+        class="volver"
+
+    >
+
+        ← Volver al inicio
+
+    </a>
+
+
+</div>
+
+
+</body>
+
+</html>

@@ -1,0 +1,42 @@
+# Entornos virtuales
+.venv/
+.venv-web/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Base de datos local / feedback
+feedback.db
+*.db
+
+# Imágenes subidas por usuarios
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Datasets pesados
+dataset/
+datasets_originales/
+inspeccion_dataset/
+
+# Archivos de entrenamiento temporales
+entrenamiento/
+
+# Jupyter / Colab
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Temporales
+*.tmp
+*.log
+detector-plantas-ia-colab.zip
