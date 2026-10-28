@@ -1,0 +1,115 @@
+MODELO: AGUA
+======================================================================
+
+ARCHIVO:
+modelo_agua_v2_colab_8478.keras
+
+FUNCIÓN:
+Modelo convolucional utilizado para clasificar patrones visuales relacionados con tratamientos hídricos en hojas de maíz.
+
+ENTRADA ESPERADA:
+Imagen RGB de 48 x 48 píxeles.
+
+SALIDA:
+3 clases: Clase 0, Clase 1 y Clase 2.
+
+PREPROCESAMIENTO:
+Antes de ingresar al modelo, app.py convierte los píxeles a float32 y divide sus valores por 255.
+
+INPUT SHAPE:
+(None, 48, 48, 3)
+
+OUTPUT SHAPE:
+(None, 3)
+
+PARÁMETROS TOTALES:
+406,499
+
+======================================================================
+CAPAS DEL MODELO
+======================================================================
+
+000 | input_layer | InputLayer | trainable=True
+001 | data_augmentation | Sequential | trainable=True
+002 | conv2d | Conv2D | trainable=True
+003 | batch_normalization | BatchNormalization | trainable=True
+004 | activation | Activation | trainable=True
+005 | max_pooling2d | MaxPooling2D | trainable=True
+006 | conv2d_1 | Conv2D | trainable=True
+007 | batch_normalization_1 | BatchNormalization | trainable=True
+008 | activation_1 | Activation | trainable=True
+009 | max_pooling2d_1 | MaxPooling2D | trainable=True
+010 | conv2d_2 | Conv2D | trainable=True
+011 | batch_normalization_2 | BatchNormalization | trainable=True
+012 | activation_2 | Activation | trainable=True
+013 | max_pooling2d_2 | MaxPooling2D | trainable=True
+014 | conv2d_3 | Conv2D | trainable=True
+015 | batch_normalization_3 | BatchNormalization | trainable=True
+016 | activation_3 | Activation | trainable=True
+017 | global_average_pooling2d | GlobalAveragePooling2D | trainable=True
+018 | dropout | Dropout | trainable=True
+019 | dense | Dense | trainable=True
+020 | dropout_1 | Dropout | trainable=True
+021 | dense_1 | Dense | trainable=True
+
+
+======================================================================
+MODEL.SUMMARY()
+======================================================================
+
+Model: "modelo_agua_v2"
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+┃ Layer (type)                         ┃ Output Shape                ┃         Param # ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
+│ input_layer (InputLayer)             │ (None, 48, 48, 3)           │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ data_augmentation (Sequential)       │ (None, 48, 48, 3)           │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ conv2d (Conv2D)                      │ (None, 48, 48, 32)          │             864 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ batch_normalization                  │ (None, 48, 48, 32)          │             128 │
+│ (BatchNormalization)                 │                             │                 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ activation (Activation)              │ (None, 48, 48, 32)          │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ max_pooling2d (MaxPooling2D)         │ (None, 24, 24, 32)          │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ conv2d_1 (Conv2D)                    │ (None, 24, 24, 64)          │          18,432 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ batch_normalization_1                │ (None, 24, 24, 64)          │             256 │
+│ (BatchNormalization)                 │                             │                 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ activation_1 (Activation)            │ (None, 24, 24, 64)          │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ max_pooling2d_1 (MaxPooling2D)       │ (None, 12, 12, 64)          │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ conv2d_2 (Conv2D)                    │ (None, 12, 12, 128)         │          73,728 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ batch_normalization_2                │ (None, 12, 12, 128)         │             512 │
+│ (BatchNormalization)                 │                             │                 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ activation_2 (Activation)            │ (None, 12, 12, 128)         │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ max_pooling2d_2 (MaxPooling2D)       │ (None, 6, 6, 128)           │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ conv2d_3 (Conv2D)                    │ (None, 6, 6, 256)           │         294,912 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ batch_normalization_3                │ (None, 6, 6, 256)           │           1,024 │
+│ (BatchNormalization)                 │                             │                 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ activation_3 (Activation)            │ (None, 6, 6, 256)           │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ global_average_pooling2d             │ (None, 256)                 │               0 │
+│ (GlobalAveragePooling2D)             │                             │                 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dropout (Dropout)                    │ (None, 256)                 │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dense (Dense)                        │ (None, 64)                  │          16,448 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dropout_1 (Dropout)                  │ (None, 64)                  │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dense_1 (Dense)                      │ (None, 3)                   │             195 │
+└──────────────────────────────────────┴─────────────────────────────┴─────────────────┘
+ Total params: 406,499 (1.55 MB)
+ Trainable params: 405,539 (1.55 MB)
+ Non-trainable params: 960 (3.75 KB)
