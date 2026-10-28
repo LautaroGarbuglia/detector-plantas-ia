@@ -44,9 +44,8 @@ porque el script histórico final no se conserva.
 from pathlib import Path
 
 import tensorflow as tf
-
-from tensorflow import keras
-from tensorflow.keras import layers
+import keras
+from keras import layers
 
 
 # ============================================================

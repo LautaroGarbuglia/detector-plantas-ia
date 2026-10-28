@@ -67,9 +67,8 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
-
-from tensorflow import keras
-from tensorflow.keras import layers
+import keras
+from keras import layers
 
 
 # ============================================================
