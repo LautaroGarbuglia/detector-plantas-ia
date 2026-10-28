@@ -1,42 +1,82 @@
-# Entornos virtuales
+# ============================================================
+# ENTORNOS VIRTUALES
+# ============================================================
+
 .venv/
 .venv-web/
 venv/
 
-# Python
+
+# ============================================================
+# PYTHON
+# ============================================================
+
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Base de datos local / feedback
+
+# ============================================================
+# BASE DE DATOS LOCAL
+# ============================================================
+
 feedback.db
 *.db
 
-# Imágenes subidas por usuarios
-static/uploads/*
-!static/uploads/.gitkeep
 
-# Datasets pesados
+# ============================================================
+# ARCHIVOS SUBIDOS POR USUARIOS
+# ============================================================
+
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+
+
+# ============================================================
+# DATASETS
+# ============================================================
+
 dataset/
 datasets_originales/
 inspeccion_dataset/
 
-# Archivos de entrenamiento temporales
-entrenamiento/
 
-# Jupyter / Colab
+# ============================================================
+# RESULTADOS GENERADOS POR ENTRENAMIENTO
+# ============================================================
+
+entrenamiento/**/salidas/
+
+
+# ============================================================
+# COLAB / JUPYTER
+# ============================================================
+
+colab_paquete/
 .ipynb_checkpoints/
+*.ipynb
+detector-plantas-ia-colab.zip
 
+
+# ============================================================
 # IDE
-.vscode/
-.idea/
+# ============================================================
 
-# Windows
+.vscode/
+
+
+# ============================================================
+# WINDOWS
+# ============================================================
+
 Thumbs.db
 Desktop.ini
 
-# Temporales
+
+# ============================================================
+# TEMPORALES
+# ============================================================
+
 *.tmp
 *.log
-detector-plantas-ia-colab.zip
