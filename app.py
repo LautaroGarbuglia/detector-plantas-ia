@@ -9,7 +9,6 @@ from flask import (
 from pathlib import Path
 from PIL import Image, UnidentifiedImageError
 
-import tensorflow as tf
 import numpy as np
 import sqlite3
 import uuid
@@ -18,18 +17,69 @@ from datetime import datetime
 
 
 # ============================================================
+# IMPORTAR LOS MODELOS
+# ============================================================
+#
+# Cada archivo .py contiene:
+#
+# - La arquitectura del modelo.
+# - Información sobre sus clases.
+# - Una función cargar_modelo().
+#
+# Los pesos aprendidos durante el entrenamiento están
+# almacenados por separado en archivos .weights.h5.
+#
+
+from modelos.enfermedades import (
+    cargar_modelo as cargar_modelo_enfermedades,
+    CLASES as CLASES_ENFERMEDADES
+)
+
+from modelos.agua import (
+    cargar_modelo as cargar_modelo_agua,
+    CLASES as CLASES_AGUA
+)
+
+from modelos.plagas import (
+    cargar_modelo as cargar_modelo_plagas,
+    UMBRAL as UMBRAL_PLAGA
+)
+
+
+# ============================================================
 # CONFIGURACIÓN GENERAL
 # ============================================================
 
 app = Flask(__name__)
 
+
+# Carpeta principal del proyecto.
 BASE_DIR = Path(__file__).resolve().parent
 
-UPLOAD_DIR = BASE_DIR / "static" / "uploads"
-MODELOS_DIR = BASE_DIR / "modelos"
 
-DB_PATH = BASE_DIR / "feedback.db"
+# Carpeta donde se guardan temporalmente
+# las imágenes que suben los usuarios.
+UPLOAD_DIR = (
+    BASE_DIR
+    / "static"
+    / "uploads"
+)
 
+
+# Base de datos donde almacenamos:
+#
+# - Predicciones.
+# - Probabilidades.
+# - Feedback.
+# - Correcciones de usuarios.
+#
+DB_PATH = (
+    BASE_DIR
+    / "feedback.db"
+)
+
+
+# Crear la carpeta uploads si todavía no existe.
 UPLOAD_DIR.mkdir(
     parents=True,
     exist_ok=True
@@ -37,115 +87,98 @@ UPLOAD_DIR.mkdir(
 
 
 # ============================================================
-# RUTAS DE MODELOS
+# CARGAR LOS TRES MODELOS
+# ============================================================
+#
+# IMPORTANTE:
+#
+# Los modelos se cargan una sola vez cuando inicia Flask.
+#
+# No se vuelven a cargar cada vez que alguien analiza
+# una fotografía.
 # ============================================================
 
-RUTA_ENFERMEDADES = (
-    MODELOS_DIR /
-    "mejor_modelo_enfermedades_maiz_v3.keras"
+
+print(
+    "Cargando modelo de enfermedades..."
 )
 
-RUTA_AGUA = (
-    MODELOS_DIR /
-    "modelo_agua_v2_colab_8478.keras"
-)
-
-RUTA_PLAGAS = (
-    MODELOS_DIR /
-    "mejor_modelo_plagas_maiz_v3.keras"
-)
-
-
-# ============================================================
-# CARGAR MODELOS
-# ============================================================
-
-print("Cargando enfermedades...")
-
-modelo_enfermedades = tf.keras.models.load_model(
-    RUTA_ENFERMEDADES,
-    compile=False
+modelo_enfermedades = (
+    cargar_modelo_enfermedades()
 )
 
 
-print("Cargando estrés hídrico...")
+print(
+    "Cargando modelo de estrés hídrico..."
+)
 
-modelo_agua = tf.keras.models.load_model(
-    RUTA_AGUA,
-    compile=False
+modelo_agua = (
+    cargar_modelo_agua()
 )
 
 
-print("Cargando plagas...")
+print(
+    "Cargando modelo de plagas..."
+)
 
-modelo_plagas = tf.keras.models.load_model(
-    RUTA_PLAGAS,
-    compile=False
+modelo_plagas = (
+    cargar_modelo_plagas()
 )
 
 
-print("✅ Modelos cargados correctamente.")
+print(
+    "✅ Modelos cargados correctamente."
+)
 
 
 # ============================================================
-# CLASES DE LOS MODELOS
+# INFORMACIÓN SOBRE LAS ENFERMEDADES
 # ============================================================
-
-CLASES_ENFERMEDADES = [
-    "Blight (Tizón)",
-    "Common Rust (Roya común)",
-    "Gray Leaf Spot (Mancha gris)",
-    "Healthy (Sana)"
-]
-
-
-CLASES_AGUA = [
-    "Clase 0",
-    "Clase 1",
-    "Clase 2"
-]
-
-
-UMBRAL_PLAGA = 0.34
-
-
-# ============================================================
-# INFORMACIÓN DE ENFERMEDADES
-# ============================================================
+#
+# Esta información NO modifica el modelo.
+#
+# Solamente se utiliza para explicar los resultados
+# de una forma más comprensible para el usuario.
+#
 
 INFO_ENFERMEDADES = {
 
     "Blight (Tizón)": {
 
-        "titulo": "Tizón foliar",
+        "titulo":
+            "Tizón foliar",
 
         "descripcion": (
-            "El modelo encontró características visuales similares "
-            "a las hojas de maíz clasificadas como tizón durante "
-            "su entrenamiento."
+            "El modelo encontró características visuales "
+            "similares a las hojas de maíz clasificadas "
+            "como tizón durante su entrenamiento."
         ),
 
         "sintomas": (
-            "Puede presentar lesiones alargadas, zonas marrones "
-            "o tejido seco que se extiende a lo largo de la hoja."
+            "Puede presentar lesiones alargadas, zonas "
+            "marrones o tejido seco que se extiende "
+            "a lo largo de la hoja."
         ),
 
         "recomendacion": (
-            "Revisar otras hojas de la misma planta y observar "
-            "si aparecen lesiones alargadas o nuevas áreas secas. "
-            "Si el problema se extiende, conviene realizar una "
-            "evaluación agronómica."
+            "Revisar otras hojas de la misma planta y "
+            "observar si aparecen lesiones alargadas o "
+            "nuevas áreas secas. Si el problema se "
+            "extiende, conviene realizar una evaluación "
+            "agronómica."
         )
     },
 
 
     "Common Rust (Roya común)": {
 
-        "titulo": "Roya común",
+        "titulo":
+            "Roya común",
 
         "descripcion": (
-            "La imagen presenta características similares a las "
-            "hojas utilizadas para entrenar la clase Roya común."
+            "La imagen presenta características similares "
+            "a las hojas utilizadas para entrenar la clase "
+            "Roya común."
         ),
 
         "sintomas": (
@@ -155,15 +188,17 @@ INFO_ENFERMEDADES = {
         ),
 
         "recomendacion": (
-            "Revisar ambas caras de otras hojas de la planta "
-            "y comprobar si existen pústulas o manchas similares."
+            "Revisar ambas caras de otras hojas de la "
+            "planta y comprobar si existen pústulas "
+            "o manchas similares."
         )
     },
 
 
     "Gray Leaf Spot (Mancha gris)": {
 
-        "titulo": "Mancha gris",
+        "titulo":
+            "Mancha gris",
 
         "descripcion": (
             "El modelo encontró características compatibles "
@@ -172,9 +207,10 @@ INFO_ENFERMEDADES = {
         ),
 
         "sintomas": (
-            "Pueden observarse lesiones alargadas o rectangulares "
-            "de color grisáceo o marrón, frecuentemente ubicadas "
-            "entre las nervaduras de la hoja."
+            "Pueden observarse lesiones alargadas o "
+            "rectangulares de color grisáceo o marrón, "
+            "frecuentemente ubicadas entre las "
+            "nervaduras de la hoja."
         ),
 
         "recomendacion": (
@@ -186,11 +222,13 @@ INFO_ENFERMEDADES = {
 
     "Healthy (Sana)": {
 
-        "titulo": "Hoja aparentemente sana",
+        "titulo":
+            "Hoja aparentemente sana",
 
         "descripcion": (
-            "El modelo encontró mayor similitud con las hojas "
-            "sanas utilizadas durante su entrenamiento."
+            "El modelo encontró mayor similitud con las "
+            "hojas sanas utilizadas durante su "
+            "entrenamiento."
         ),
 
         "sintomas": (
@@ -201,16 +239,18 @@ INFO_ENFERMEDADES = {
 
         "recomendacion": (
             "Continuar observando la planta. Este resultado "
-            "no descarta problemas, deficiencias o enfermedades "
-            "que el modelo todavía no fue entrenado para reconocer."
+            "no descarta problemas, deficiencias o "
+            "enfermedades que el modelo todavía no fue "
+            "entrenado para reconocer."
         )
     }
 }
 
 
 # ============================================================
-# INFORMACIÓN DE PLAGA
+# INFORMACIÓN SOBRE FALL ARMYWORM
 # ============================================================
+
 
 INFO_PLAGA_POSITIVA = {
 
@@ -218,21 +258,23 @@ INFO_PLAGA_POSITIVA = {
         "Posible presencia de gusano cogollero",
 
     "descripcion": (
-        "El modelo encontró características visuales compatibles "
-        "con las imágenes de Fall Armyworm utilizadas durante "
-        "su entrenamiento."
+        "El modelo encontró características visuales "
+        "compatibles con las imágenes de Fall Armyworm "
+        "utilizadas durante su entrenamiento."
     ),
 
     "sintomas": (
-        "Conviene revisar si existen perforaciones, tejido raspado, "
-        "bordes dañados, orificios irregulares o daños concentrados "
-        "cerca del cogollo."
+        "Conviene revisar si existen perforaciones, "
+        "tejido raspado, bordes dañados, orificios "
+        "irregulares o daños concentrados cerca "
+        "del cogollo."
     ),
 
     "recomendacion": (
-        "Inspeccionar manualmente la planta y, especialmente, "
-        "el cogollo. La predicción visual debe utilizarse como "
-        "una señal para realizar una revisión más detallada."
+        "Inspeccionar manualmente la planta y, "
+        "especialmente, el cogollo. La predicción visual "
+        "debe utilizarse como una señal para realizar "
+        "una revisión más detallada."
     )
 }
 
@@ -243,9 +285,9 @@ INFO_PLAGA_NEGATIVA = {
         "Sin evidencia suficiente de gusano cogollero",
 
     "descripcion": (
-        "La probabilidad calculada por el modelo se encuentra "
-        "por debajo del umbral utilizado para clasificar "
-        "la imagen como Fall Armyworm."
+        "La probabilidad calculada por el modelo se "
+        "encuentra por debajo del umbral utilizado para "
+        "clasificar la imagen como Fall Armyworm."
     ),
 
     "sintomas": (
@@ -255,39 +297,62 @@ INFO_PLAGA_NEGATIVA = {
     ),
 
     "recomendacion": (
-        "Esto no descarta otras plagas ni garantiza que la planta "
-        "esté completamente sana. Si existen daños visibles, "
-        "conviene inspeccionar la planta manualmente."
+        "Esto no descarta otras plagas ni garantiza que "
+        "la planta esté completamente sana. Si existen "
+        "daños visibles, conviene inspeccionar la planta "
+        "manualmente."
     )
 }
 
 
 # ============================================================
-# NIVEL ORIENTATIVO
+# NIVEL ORIENTATIVO DE CONFIANZA
 # ============================================================
+#
+# Esto NO representa una certeza diagnóstica.
+#
+# Simplemente transforma la probabilidad de salida
+# del modelo en una etiqueta más fácil de interpretar.
+#
 
-def nivel_confianza(probabilidad):
+def nivel_confianza(
+    probabilidad
+):
 
     if probabilidad >= 0.85:
+
         return "Alta"
 
+
     elif probabilidad >= 0.65:
+
         return "Media"
 
+
     else:
+
         return "Baja"
 
 
 # ============================================================
-# BASE DE DATOS
+# CREAR / ACTUALIZAR BASE DE DATOS
 # ============================================================
 
 def inicializar_db():
 
-    conexion = sqlite3.connect(DB_PATH)
+    conexion = sqlite3.connect(
+        DB_PATH
+    )
+
     cursor = conexion.cursor()
 
-    cursor.execute("""
+
+    # ========================================================
+    # TABLA PRINCIPAL
+    # ========================================================
+
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS analisis (
 
             id TEXT PRIMARY KEY,
@@ -307,25 +372,30 @@ def inicializar_db():
 
             fecha TEXT
         )
-    """)
+        """
+    )
 
-    # --------------------------------------------------------
-    # VER COLUMNAS EXISTENTES
-    # --------------------------------------------------------
+
+    # ========================================================
+    # COMPROBAR COLUMNAS EXISTENTES
+    # ========================================================
 
     cursor.execute(
         "PRAGMA table_info(analisis)"
     )
 
+
     columnas = {
+
         fila[1]
+
         for fila in cursor.fetchall()
     }
 
 
-    # --------------------------------------------------------
-    # COLUMNAS DE FEEDBACK
-    # --------------------------------------------------------
+    # ========================================================
+    # COLUMNAS NECESARIAS PARA EL FEEDBACK
+    # ========================================================
 
     nuevas_columnas = {
 
@@ -352,7 +422,13 @@ def inicializar_db():
     }
 
 
-    for nombre, tipo in nuevas_columnas.items():
+    # ========================================================
+    # AGREGAR LAS QUE FALTEN
+    # ========================================================
+
+    for nombre, tipo in (
+        nuevas_columnas.items()
+    ):
 
         if nombre not in columnas:
 
@@ -363,6 +439,7 @@ def inicializar_db():
                 """
             )
 
+
             print(
                 "Columna agregada:",
                 nombre
@@ -370,47 +447,92 @@ def inicializar_db():
 
 
     conexion.commit()
+
     conexion.close()
 
 
+# Crear / actualizar DB al arrancar.
 inicializar_db()
 
 
 # ============================================================
-# ANALIZAR IMAGEN
+# ANALIZAR UNA IMAGEN
 # ============================================================
 
-def analizar_imagen(ruta):
+def analizar_imagen(
+    ruta
+):
 
+    # Abrimos la imagen y la convertimos
+    # siempre a RGB.
     imagen = Image.open(
         ruta
-    ).convert("RGB")
+    ).convert(
+        "RGB"
+    )
 
 
     # ========================================================
-    # 1. ENFERMEDADES
+    # MODELO 1:
+    # ENFERMEDADES
+    # ========================================================
+    #
+    # Entrada esperada:
+    #
+    # 160 x 160 x 3
+    #
+    # El modelo posee su propio preprocesamiento interno.
+    # Por eso NO dividimos los píxeles por 255.
     # ========================================================
 
     img_enfermedad = imagen.resize(
+
         (160, 160),
+
         Image.Resampling.BILINEAR
     )
 
+
     entrada_enfermedad = np.asarray(
+
         img_enfermedad,
+
         dtype=np.uint8
-    )[None, ...]
+    )
+
+
+    # Tensor:
+    #
+    # (160,160,3)
+    #
+    # pasa a:
+    #
+    # (1,160,160,3)
+    #
+    entrada_enfermedad = np.expand_dims(
+
+        entrada_enfermedad,
+
+        axis=0
+    )
 
 
     probabilidades_enfermedad = (
+
         modelo_enfermedades.predict(
+
             entrada_enfermedad,
+
             verbose=0
+
         )[0]
     )
 
 
+    # Elegimos la clase que tenga
+    # mayor probabilidad.
     indice_enfermedad = int(
+
         np.argmax(
             probabilidades_enfermedad
         )
@@ -418,6 +540,7 @@ def analizar_imagen(ruta):
 
 
     enfermedad = (
+
         CLASES_ENFERMEDADES[
             indice_enfermedad
         ]
@@ -425,6 +548,7 @@ def analizar_imagen(ruta):
 
 
     prob_enfermedad = float(
+
         probabilidades_enfermedad[
             indice_enfermedad
         ]
@@ -432,6 +556,7 @@ def analizar_imagen(ruta):
 
 
     info_enfermedad = (
+
         INFO_ENFERMEDADES[
             enfermedad
         ]
@@ -439,73 +564,119 @@ def analizar_imagen(ruta):
 
 
     # ========================================================
-    # RANKING DE ENFERMEDADES
+    # RANKING DE TODAS LAS ENFERMEDADES
     # ========================================================
 
     ranking_enfermedades = []
 
+
     for nombre, probabilidad in zip(
+
         CLASES_ENFERMEDADES,
+
         probabilidades_enfermedad
     ):
 
         ranking_enfermedades.append({
 
-            "nombre": nombre,
+            "nombre":
+                nombre,
 
             "probabilidad":
-                float(probabilidad)
+                float(
+                    probabilidad
+                )
         })
 
 
+    # Ordenar de mayor a menor.
     ranking_enfermedades.sort(
-        key=lambda x: x["probabilidad"],
+
+        key=lambda elemento:
+            elemento[
+                "probabilidad"
+            ],
+
         reverse=True
     )
 
 
     # ========================================================
-    # 2. ESTRÉS HÍDRICO
+    # MODELO 2:
+    # ESTRÉS HÍDRICO
+    # ========================================================
+    #
+    # Entrada esperada:
+    #
+    # 48 x 48 x 3
+    #
+    # Este modelo fue entrenado utilizando
+    # valores normalizados entre 0 y 1.
+    #
+    # Por eso dividimos por 255.
     # ========================================================
 
     img_agua = imagen.resize(
+
         (48, 48),
+
         Image.Resampling.BILINEAR
     )
 
 
     entrada_agua = np.asarray(
+
         img_agua,
+
         dtype=np.float32
-    ) / 255.0
+    )
 
 
-    entrada_agua = entrada_agua[
-        None, ...
-    ]
+    entrada_agua = (
+
+        entrada_agua
+        / 255.0
+    )
+
+
+    entrada_agua = np.expand_dims(
+
+        entrada_agua,
+
+        axis=0
+    )
 
 
     probabilidades_agua = (
+
         modelo_agua.predict(
+
             entrada_agua,
+
             verbose=0
+
         )[0]
     )
 
 
     indice_agua = int(
+
         np.argmax(
             probabilidades_agua
         )
     )
 
 
-    agua = CLASES_AGUA[
-        indice_agua
-    ]
+    agua = (
+
+        CLASES_AGUA[
+            indice_agua
+        ]
+    )
 
 
     prob_agua = float(
+
         probabilidades_agua[
             indice_agua
         ]
@@ -513,96 +684,166 @@ def analizar_imagen(ruta):
 
 
     # ========================================================
-    # 3. GUSANO COGOLLERO
+    # MODELO 3:
+    # FALL ARMYWORM / GUSANO COGOLLERO
+    # ========================================================
+    #
+    # Entrada esperada:
+    #
+    # 160 x 160 x 3
+    #
+    # El modelo posee un Rescaling interno.
+    #
+    # Por eso NO dividimos por 255.
     # ========================================================
 
     img_plaga = imagen.resize(
+
         (160, 160),
+
         Image.Resampling.BILINEAR
     )
 
 
-    # El modelo ya tiene Rescaling interno.
     entrada_plaga = np.asarray(
+
         img_plaga,
+
         dtype=np.float32
-    )[None, ...]
+    )
+
+
+    entrada_plaga = np.expand_dims(
+
+        entrada_plaga,
+
+        axis=0
+    )
 
 
     probabilidades_plaga = (
+
         modelo_plagas.predict(
+
             entrada_plaga,
+
             verbose=0
+
         )[0]
     )
 
 
+    # Clase 0:
+    # No Fall Armyworm
     prob_no_faw = float(
+
         probabilidades_plaga[0]
     )
 
+
+    # Clase 1:
+    # Fall Armyworm
     prob_faw = float(
+
         probabilidades_plaga[1]
     )
 
 
     # ========================================================
-    # DECISIÓN PLAGA
+    # DECISIÓN DE PLAGA
+    # ========================================================
+    #
+    # No usamos simplemente 50%.
+    #
+    # Durante la validación del modelo se fijó
+    # el umbral en 34%.
+    #
+    # Si:
+    #
+    # prob_faw >= 0.34
+    #
+    # clasificamos como Fall Armyworm.
     # ========================================================
 
     if prob_faw >= UMBRAL_PLAGA:
 
         plaga = (
+
             "Fall Armyworm "
             "(Gusano cogollero)"
         )
+
 
         info_plaga = (
             INFO_PLAGA_POSITIVA
         )
 
+
     else:
 
         plaga = (
+
             "Sin evidencia suficiente "
             "de Fall Armyworm"
         )
+
 
         info_plaga = (
             INFO_PLAGA_NEGATIVA
         )
 
 
-    # Nivel orientativo basado en la salida dominante
+    # ========================================================
+    # NIVEL ORIENTATIVO DE PLAGA
+    # ========================================================
+
     confianza_plaga = nivel_confianza(
+
         max(
+
             prob_faw,
+
             prob_no_faw
         )
     )
 
 
     # ========================================================
-    # ADVERTENCIA HÍDRICA
+    # ADVERTENCIA PARA EL MODELO DE AGUA
+    # ========================================================
+    #
+    # Si existe una enfermedad con alta probabilidad,
+    # las lesiones pueden alterar color y textura.
+    #
+    # Eso puede afectar la interpretación del
+    # modelo hídrico.
     # ========================================================
 
     if (
-        enfermedad != "Healthy (Sana)"
-        and prob_enfermedad >= 0.70
+        enfermedad
+        != "Healthy (Sana)"
+
+        and
+
+        prob_enfermedad
+        >= 0.70
     ):
 
         advertencia_agua = (
+
             "La imagen presenta una probabilidad elevada "
             "de enfermedad. Las lesiones pueden modificar "
             "el color y la textura de la hoja y afectar "
             "la predicción del modelo hídrico."
         )
 
+
     else:
 
         advertencia_agua = (
-            "El resultado hídrico es experimental y debe "
-            "interpretarse con precaución."
+
+            "El resultado hídrico es experimental y "
+            "debe interpretarse con precaución."
         )
 
 
@@ -612,12 +853,17 @@ def analizar_imagen(ruta):
 
     return {
 
+        # ====================================================
         # ENFERMEDAD
+        # ====================================================
+
         "enfermedad":
             enfermedad,
 
         "nombre_enfermedad":
-            info_enfermedad["titulo"],
+            info_enfermedad[
+                "titulo"
+            ],
 
         "prob_enfermedad":
             prob_enfermedad,
@@ -646,7 +892,10 @@ def analizar_imagen(ruta):
             ranking_enfermedades,
 
 
+        # ====================================================
         # AGUA
+        # ====================================================
+
         "agua":
             agua,
 
@@ -662,7 +911,10 @@ def analizar_imagen(ruta):
             advertencia_agua,
 
 
+        # ====================================================
         # PLAGA
+        # ====================================================
+
         "plaga":
             plaga,
 
@@ -676,7 +928,9 @@ def analizar_imagen(ruta):
             confianza_plaga,
 
         "titulo_plaga":
-            info_plaga["titulo"],
+            info_plaga[
+                "titulo"
+            ],
 
         "descripcion_plaga":
             info_plaga[
@@ -696,7 +950,7 @@ def analizar_imagen(ruta):
 
 
 # ============================================================
-# OBTENER ANÁLISIS
+# BUSCAR ANÁLISIS EN SQLITE
 # ============================================================
 
 def obtener_analisis(
@@ -707,11 +961,22 @@ def obtener_analisis(
         DB_PATH
     )
 
+
+    # Esto permite acceder a las columnas así:
+    #
+    # analisis["imagen"]
+    #
+    # en vez de:
+    #
+    # analisis[1]
+    #
     conexion.row_factory = (
         sqlite3.Row
     )
 
+
     cursor = conexion.cursor()
+
 
     cursor.execute(
         """
@@ -725,9 +990,12 @@ def obtener_analisis(
         )
     )
 
+
     fila = cursor.fetchone()
 
+
     conexion.close()
+
 
     return fila
 
@@ -746,8 +1014,11 @@ def obtener_analisis(
 def inicio():
 
     imagen_url = None
+
     resultado = None
+
     analisis_id = None
+
 
     mensaje = request.args.get(
         "mensaje"
@@ -755,7 +1026,7 @@ def inicio():
 
 
     # ========================================================
-    # SUBIR Y ANALIZAR
+    # SI SE SUBE UNA IMAGEN
     # ========================================================
 
     if request.method == "POST":
@@ -770,22 +1041,33 @@ def inicio():
             and archivo.filename
         ):
 
+            # =================================================
+            # EXTENSIÓN
+            # =================================================
+
             extension = Path(
+
                 archivo.filename
+
             ).suffix.lower()
 
 
             extensiones_permitidas = {
+
                 ".jpg",
+
                 ".jpeg",
+
                 ".png",
+
                 ".webp"
             }
 
 
             if (
                 extension
-                not in extensiones_permitidas
+                not in
+                extensiones_permitidas
             ):
 
                 return render_template(
@@ -793,37 +1075,49 @@ def inicio():
                     "index.html",
 
                     mensaje=(
+
                         "⚠️ Formato de imagen "
                         "no permitido."
                     )
                 )
 
 
+            # =================================================
+            # GENERAR NOMBRE ÚNICO
+            # =================================================
+
             nombre = (
+
                 uuid.uuid4().hex
                 + extension
             )
 
 
             ruta = (
-                UPLOAD_DIR /
-                nombre
+
+                UPLOAD_DIR
+                / nombre
             )
 
 
+            # Guardar imagen.
             archivo.save(
                 ruta
             )
 
 
-            # ------------------------------------------------
+            # =================================================
             # COMPROBAR QUE REALMENTE SEA UNA IMAGEN
-            # ------------------------------------------------
+            # =================================================
 
             try:
 
-                with Image.open(ruta) as prueba:
+                with Image.open(
+                    ruta
+                ) as prueba:
+
                     prueba.verify()
+
 
             except (
                 UnidentifiedImageError,
@@ -834,48 +1128,60 @@ def inicio():
                     missing_ok=True
                 )
 
+
                 return render_template(
 
                     "index.html",
 
                     mensaje=(
+
                         "⚠️ El archivo seleccionado "
                         "no es una imagen válida."
                     )
                 )
 
 
-            # ------------------------------------------------
-            # IA
-            # ------------------------------------------------
+            # =================================================
+            # ANALIZAR CON LOS TRES MODELOS
+            # =================================================
 
             resultado = analizar_imagen(
                 ruta
             )
 
 
+            # =================================================
+            # ID ÚNICO DEL ANÁLISIS
+            # =================================================
+
             analisis_id = (
                 uuid.uuid4().hex
             )
 
+
+            # =================================================
+            # URL DE LA FOTO
+            # =================================================
 
             imagen_url = url_for(
 
                 "static",
 
                 filename=(
+
                     f"uploads/{nombre}"
                 )
             )
 
 
-            # ------------------------------------------------
-            # GUARDAR ANÁLISIS
-            # ------------------------------------------------
+            # =================================================
+            # GUARDAR RESULTADOS EN SQLITE
+            # =================================================
 
             conexion = sqlite3.connect(
                 DB_PATH
             )
+
 
             cursor = conexion.cursor()
 
@@ -885,18 +1191,23 @@ def inicio():
                 INSERT INTO analisis (
 
                     id,
+
                     imagen,
 
                     enfermedad,
+
                     prob_enfermedad,
 
                     agua,
+
                     prob_agua,
 
                     plaga,
+
                     prob_plaga,
 
                     feedback,
+
                     fecha
 
                 )
@@ -945,6 +1256,7 @@ def inicio():
 
 
             conexion.commit()
+
             conexion.close()
 
 
@@ -952,13 +1264,17 @@ def inicio():
 
         "index.html",
 
-        imagen_url=imagen_url,
+        imagen_url=
+            imagen_url,
 
-        resultado=resultado,
+        resultado=
+            resultado,
 
-        analisis_id=analisis_id,
+        analisis_id=
+            analisis_id,
 
-        mensaje=mensaje
+        mensaje=
+            mensaje
     )
 
 
@@ -976,13 +1292,14 @@ def feedback():
         "analisis_id"
     )
 
+
     valor = request.form.get(
         "valor"
     )
 
 
     # ========================================================
-    # CORRECTO
+    # RESULTADO CORRECTO
     # ========================================================
 
     if valor == "correcto":
@@ -991,14 +1308,18 @@ def feedback():
             DB_PATH
         )
 
+
         cursor = conexion.cursor()
+
 
         cursor.execute(
             """
             UPDATE analisis
 
             SET
+
                 feedback = ?,
+
                 fecha_feedback = ?
 
             WHERE id = ?
@@ -1016,6 +1337,7 @@ def feedback():
 
 
         conexion.commit()
+
         conexion.close()
 
 
@@ -1026,6 +1348,7 @@ def feedback():
                 "inicio",
 
                 mensaje=(
+
                     "✅ Gracias. "
                     "La valoración fue "
                     "guardada correctamente."
@@ -1035,7 +1358,7 @@ def feedback():
 
 
     # ========================================================
-    # INCORRECTO
+    # RESULTADO INCORRECTO
     # ========================================================
 
     if valor == "incorrecto":
@@ -1046,18 +1369,21 @@ def feedback():
 
                 "corregir",
 
-                analisis_id=analisis_id
+                analisis_id=
+                    analisis_id
             )
         )
 
 
     return redirect(
-        url_for("inicio")
+        url_for(
+            "inicio"
+        )
     )
 
 
 # ============================================================
-# CORREGIR ANÁLISIS
+# CORREGIR RESULTADO
 # ============================================================
 
 @app.route(
@@ -1071,6 +1397,7 @@ def corregir(
     analisis_id
 ):
 
+    # Buscar el análisis original.
     analisis = obtener_analisis(
         analisis_id
     )
@@ -1079,16 +1406,23 @@ def corregir(
     if analisis is None:
 
         return (
+
             "Análisis no encontrado.",
+
             404
         )
 
 
     # ========================================================
-    # GUARDAR CORRECCIÓN
+    # SI EL USUARIO ENVÍA UNA CORRECCIÓN
     # ========================================================
 
     if request.method == "POST":
+
+        # ====================================================
+        # ¿QUÉ RESULTADOS ESTABAN MAL?
+        # ====================================================
+
 
         error_enfermedad = (
 
@@ -1126,13 +1460,16 @@ def corregir(
         )
 
 
-        # ----------------------------------------------------
-        # VALIDAR AL MENOS UNA CORRECCIÓN
-        # ----------------------------------------------------
+        # ====================================================
+        # AL MENOS UNA OPCIÓN DEBE ESTAR MARCADA
+        # ====================================================
 
         if not (
+
             error_enfermedad
+
             or error_agua
+
             or error_plaga
         ):
 
@@ -1141,7 +1478,9 @@ def corregir(
                 "static",
 
                 filename=(
+
                     "uploads/"
+
                     + analisis[
                         "imagen"
                     ]
@@ -1153,11 +1492,14 @@ def corregir(
 
                 "corregir.html",
 
-                analisis=analisis,
+                analisis=
+                    analisis,
 
-                imagen_url=imagen_url,
+                imagen_url=
+                    imagen_url,
 
                 error=(
+
                     "Seleccioná al menos "
                     "un resultado que "
                     "consideres incorrecto."
@@ -1165,9 +1507,9 @@ def corregir(
             )
 
 
-        # ----------------------------------------------------
-        # VALORES CORRECTOS
-        # ----------------------------------------------------
+        # ====================================================
+        # RESPUESTA CORRECTA DE ENFERMEDAD
+        # ====================================================
 
         enfermedad_correcta = (
 
@@ -1181,6 +1523,10 @@ def corregir(
         )
 
 
+        # ====================================================
+        # RESPUESTA CORRECTA DE AGUA
+        # ====================================================
+
         agua_correcta = (
 
             request.form.get(
@@ -1192,6 +1538,10 @@ def corregir(
             else None
         )
 
+
+        # ====================================================
+        # RESPUESTA CORRECTA DE PLAGA
+        # ====================================================
 
         plaga_correcta = (
 
@@ -1205,13 +1555,14 @@ def corregir(
         )
 
 
-        # ----------------------------------------------------
-        # GUARDAR
-        # ----------------------------------------------------
+        # ====================================================
+        # GUARDAR CORRECCIÓN
+        # ====================================================
 
         conexion = sqlite3.connect(
             DB_PATH
         )
+
 
         cursor = conexion.cursor()
 
@@ -1225,12 +1576,15 @@ def corregir(
                 feedback = ?,
 
                 error_enfermedad = ?,
+
                 enfermedad_correcta = ?,
 
                 error_agua = ?,
+
                 agua_correcta = ?,
 
                 error_plaga = ?,
+
                 plaga_correcta = ?,
 
                 fecha_feedback = ?
@@ -1243,12 +1597,15 @@ def corregir(
                 "incorrecto",
 
                 error_enfermedad,
+
                 enfermedad_correcta,
 
                 error_agua,
+
                 agua_correcta,
 
                 error_plaga,
+
                 plaga_correcta,
 
                 datetime.now().isoformat(),
@@ -1259,6 +1616,7 @@ def corregir(
 
 
         conexion.commit()
+
         conexion.close()
 
 
@@ -1269,6 +1627,7 @@ def corregir(
                 "inicio",
 
                 mensaje=(
+
                     "✅ Corrección guardada. "
                     "Podrá utilizarse para "
                     "futuros reentrenamientos."
@@ -1278,7 +1637,7 @@ def corregir(
 
 
     # ========================================================
-    # MOSTRAR FORMULARIO
+    # MOSTRAR FORMULARIO DE CORRECCIÓN
     # ========================================================
 
     imagen_url = url_for(
@@ -1286,7 +1645,9 @@ def corregir(
         "static",
 
         filename=(
+
             "uploads/"
+
             + analisis[
                 "imagen"
             ]
@@ -1298,27 +1659,33 @@ def corregir(
 
         "corregir.html",
 
-        analisis=analisis,
+        analisis=
+            analisis,
 
-        imagen_url=imagen_url
+        imagen_url=
+            imagen_url
     )
 
 
 # ============================================================
-# EJECUTAR
+# INICIAR APLICACIÓN
 # ============================================================
 
 if __name__ == "__main__":
 
     app.run(
 
-        host="127.0.0.1",
+        host=
+            "127.0.0.1",
 
-        port=5000,
+        port=
+            5000,
 
-        debug=True,
+        debug=
+            True,
 
-        # Evita cargar los modelos dos veces
-        # durante el desarrollo.
-        use_reloader=False
+        # Evitamos que Flask reinicie el proceso
+        # y cargue los tres modelos dos veces.
+        use_reloader=
+            False
     )
